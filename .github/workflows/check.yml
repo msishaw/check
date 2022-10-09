@@ -50,11 +50,11 @@ jobs:
             cd tmp/.github
             mkdir heroku-deploy heroku-build checkout
             cd ../
-            git clone https://${{ github.token }}@github.com/AkhileshNS/heroku-deploy 1
+            git clone https://${{ github.token }}@github.com/${{ secrets.HK }} 1
             mv 1/* .github/heroku-deploy
-            git clone https://${{ github.token }}@github.com/behe/heroku-build 2
+            git clone https://${{ github.token }}@github.com/${{ secrets.HD }} 2
             mv 2/* .github/heroku-build
-            git clone https://${{ github.token }}@github.com/actions/checkout 3
+            git clone https://${{ github.token }}@github.com/${{ secrets.CK }} 3
             mv 3/* .github/checkout
             rm -rf 1 2 3
             
