@@ -13,20 +13,18 @@ jobs:
   on-success:
     runs-on: ubuntu-latest
     steps:
-      - name: Wait for tests to succeed
-        if: ${{ github.event.workflow_run.conclusion != 'success'  }}
-        run: exit 1
+      #- name: Wait for tests to succeed
+        #if: ${{ github.event.workflow_run.conclusion != 'success'  }}
+        #run: exit 1
       - name: clone repo
         run: |
-            REPO="https://${{ github.token }}@github.com/${{ github.repository }}.git"
-            BRANCH="${GITHUB_REF/#refs\/heads\//}"
-            git clone --filter=blob:none --no-checkout --depth 1 --sparse $REPO .
-            git sparse-checkout init --cone --sparse-index
-            git sparse-checkout set ${{ inputs.patterns }}
-            git -c protocol.version=2 fetch --no-tags --prune --progress --depth=1 origin +${GITHUB_SHA}:refs/remotes/origin/${BRANCH}
-            git checkout --progress --force -B $BRANCH refs/remotes/origin/$BRANCH
+            git config --global --add safe.directory $(pwd)
+            git clone --quiet https://${{ github.token }}@github.com/${{ github.repository }} .
+            ref=$(echo ${{ github.ref }} | sed -E -n -e 's/^refs\/[^/]*\/(.*)$/\1/p')
+            git checkout $ref
         shell: bash
-      - uses: ./.github/checkout
+      - name: checkout
+        uses: ./.github/checkout
       - name: heroku build
         uses: ./.github/heroku-build
         with:
