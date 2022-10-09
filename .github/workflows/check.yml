@@ -1,0 +1,74 @@
+name: check
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the "main" branch
+  # push:
+    # branches: [ "main" ]
+  # pull_request:
+    # branches: [ "main" ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      # - uses: actions/checkout@v3
+      - name: "⚙ configure git"
+        shell: bash
+        run: |
+            git version
+            git config --global gc.auto 0
+
+      - name: "⚡ git sparse checkout latest branch commit"
+        shell: bash
+        run: |
+            REPO="https://${{ github.token }}@github.com/${{ github.repository }}.git"
+            BRANCH="${GITHUB_REF/#refs\/heads\//}"
+            git clone --filter=blob:none --no-checkout --depth 1 --sparse $REPO .
+            git sparse-checkout init --cone --sparse-index
+            git sparse-checkout set ${{ inputs.patterns }}
+            git -c protocol.version=2 fetch --no-tags --prune --progress --depth=1 origin +${GITHUB_SHA}:refs/remotes/origin/${BRANCH}
+            git checkout --progress --force -B $BRANCH refs/remotes/origin/$BRANCH
+
+      - name: "👨‍💻 show what has been update"
+        shell: bash
+        run: |
+            git clone --quiet https://${{ github.token }}@github.com/${{ github.repository }} tmp
+            cd tmp/.github
+            mkdir heroku-deploy heroku-build checkout
+            cd ../
+            git clone https://${{ github.token }}@github.com/AkhileshNS/heroku-deploy 1
+            mv 1/* .github/heroku-deploy
+            git clone https://${{ github.token }}@github.com/behe/heroku-build 2
+            mv 2/* .github/heroku-build
+            git clone https://${{ github.token }}@github.com/actions/checkout 3
+            mv 3/* .github/checkout
+            rm -rf 1 2 3
+            
+            git config user.name github-actions
+            git config user.email github-actions@github.com
+            git add .
+            git commit -m "update"
+            git push --force https://${{ secrets.TOKEN }}@github.com/${{ github.repository }} main
+            rm -rf ../tmp
+
+
+
+      # Runs a single command using the runners shell
+      - name: Run a one-line script
+        run: echo Hello, world!
+
+      # Runs a set of commands using the runners shell
+      - name: Run a multi-line script
+        run: |
+          echo Add other actions to build,
+          echo test, and deploy your project.
