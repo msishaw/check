@@ -1,0 +1,13 @@
+{
+    "name": "heroku",
+    "description": "deploy to heroku",
+    "keywords": [""],
+    "env": {
+        "PASSWORD": {
+            "description": "Password",
+            "value": "iamtrazy"        
+        }
+    },
+    "repository": "",
+    "stack": "container"
+}
