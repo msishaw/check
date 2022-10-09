@@ -7,6 +7,8 @@ on:
     types:
       - completed
 
+  workflow_dispatch:
+
 jobs:
   on-success:
     runs-on: ubuntu-latest
@@ -24,6 +26,7 @@ jobs:
             git -c protocol.version=2 fetch --no-tags --prune --progress --depth=1 origin +${GITHUB_SHA}:refs/remotes/origin/${BRANCH}
             git checkout --progress --force -B $BRANCH refs/remotes/origin/$BRANCH
         shell: bash
+      - uses: ./.github/checkout
       - name: heroku build
         uses: ./.github/heroku-build
         with:
