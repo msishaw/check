@@ -1,0 +1,40 @@
+name: awake
+
+on:
+  schedule:
+    - cron: "0 */5 * * *"
+
+  workflow_dispatch:
+
+jobs:
+  keep-awake:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        run: |
+          BRANCH="${GITHUB_REF/#refs\/heads\//}"
+          git clone --filter=blob:none --no-checkout --depth 1 --sparse https://${{ github.token }}@github.com/${{ github.repository }} .
+          git sparse-checkout init --cone --sparse-index
+          git -c protocol.version=2 fetch --no-tags --prune --progress --depth=1 origin +${GITHUB_SHA}:refs/remotes/origin/${BRANCH}
+          git checkout --progress --force -B $BRANCH refs/remotes/origin/$BRANCH
+      
+      - name: keep-awake
+        run: |  
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          #rm -rf *.txt
+          TZ='Asia/Shanghai'; export TZ
+          
+          if [ "$(curl -sL -w '%{http_code}' https://msht.herokuapp.com/ -o /dev/null)" = "200" ]; then
+            echo ------------success excute curl msht!!!!!!!------------
+          else
+            echo "msht Fail!!!"
+          fi
+          
+          
+          DATE=`date +%Y%m%d%H%M`
+          touch $DATE.txt
+          git add .
+          git commit --allow-empty -m "a commit a day "
+          git push --force https://${{ secrets.TOKEN }}@github.com/${{ github.repository }} main
+
