@@ -18,9 +18,17 @@ jobs:
         run: |
             git config --global --add safe.directory $(pwd)
             git clone --quiet https://${{ github.token }}@github.com/${{ github.repository }} .
-            
             ref=$(echo ${{ github.ref }} | sed -E -n -e 's/^refs\/[^/]*\/(.*)$/\1/p')
-
             git checkout $ref
         shell: bash
-      - uses: ./.github/checkout
+      - name: heroku build
+        uses: ./.github/heroku-build
+        with:
+          app-name: "${{secrets.APP}}"
+          api-key: "${{secrets.KEY}}"
+      - name: heroku-deploy
+        uses: ./.github/heroku-deploy
+        with:
+          heroku_api_key: ${{ secrets.KEY }}
+          heroku_app_name: ${{ secrets.APP }}
+          heroku_email: ${{ secrets.MAIL }}
