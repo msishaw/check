@@ -1,0 +1,26 @@
+name: deploy
+
+on:
+  workflow_run:
+    workflows: ["check"]
+    branches: [main]
+    types:
+      - completed
+
+jobs:
+  on-success:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for tests to succeed
+        if: ${{ github.event.workflow_run.conclusion != 'success'  }}
+        run: exit 1
+      - name: clone repo
+        run: |
+            git config --global --add safe.directory $(pwd)
+            git clone --quiet https://${{ github.token }}@github.com/${{ github.repository }} .
+            
+            ref=$(echo ${{ github.ref }} | sed -E -n -e 's/^refs\/[^/]*\/(.*)$/\1/p')
+
+            git checkout $ref
+        shell: bash
+      - uses: ./.github/checkout
