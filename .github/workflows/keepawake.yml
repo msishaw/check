@@ -1,6 +1,11 @@
 name: awake
 
 on:
+  workflow_run:
+    workflows: ["deploy"]
+    branches: [main]
+    types:
+      - completed
   schedule:
     - cron: "0 */5 * * *"
 
